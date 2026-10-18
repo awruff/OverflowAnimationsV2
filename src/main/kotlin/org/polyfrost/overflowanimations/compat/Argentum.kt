@@ -23,23 +23,18 @@
  * "MINECRAFT" LINKING EXCEPTION TO THE GPL
  */
 
-package org.polyfrost.overflowanimations.compat;
+package org.polyfrost.overflowanimations.compat
 
-import dev.rdh.argentum.impl.render.entity.instancing.EntityCapture;
-import dev.rdh.argentum.impl.render.gui.hud.item.GuiItemIcons;
-import net.fabricmc.loader.api.FabricLoader;
+import dev.rdh.argentum.impl.render.entity.instancing.EntityCapture
+import dev.rdh.argentum.impl.render.gui.hud.item.GuiItemIcons
+import net.fabricmc.loader.api.FabricLoader
 
-public final class Argentum {
-    private static final boolean LOADED = FabricLoader.getInstance().isModLoaded("argentum");
+object Argentum {
+    private val LOADED = FabricLoader.getInstance().isModLoaded("argentum")
 
-    private Argentum() {
-    }
+    @JvmStatic
+    fun capturingEntity() = LOADED && EntityCapture.current() != null
 
-    public static boolean capturingEntity() {
-        return LOADED && EntityCapture.current() != null;
-    }
-
-    public static boolean bakingGuiItem() {
-        return LOADED && GuiItemIcons.baking();
-    }
+    @JvmStatic
+    fun bakingGuiItem() = LOADED && GuiItemIcons.baking()
 }

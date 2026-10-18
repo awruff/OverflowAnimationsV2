@@ -1,0 +1,37 @@
+[versions]
+minecraft = "1.8.9"
+fabric-loader = "0.20.0"
+feather = "2"
+osl = "0.22.2"
+kotlin = "2.4.10"
+loom = "1.18-SNAPSHOT"
+ploceus = "1.18-SNAPSHOT"
+oneconfig = "1.4.0"
+fabric-language-kotlin = "1.14.1+kotlin.2.4.20"
+argentum = "1.0.0+b45107a"
+celeritas = "2.5.0-pre.1"
+overflowparticles = "GPN2xTSL"
+joml = "1.10.5"
+
+[libraries]
+minecraft = { module = "com.mojang:minecraft", version.ref = "minecraft" }
+fabric-loader = { module = "net.fabricmc:fabric-loader", version.ref = "fabric-loader" }
+fabric-language-kotlin = { module = "net.fabricmc:fabric-language-kotlin", version.ref = "fabric-language-kotlin" }
+oneconfig-ornithe = { module = "org.polyfrost.oneconfig:1.8.9-ornithe", version.ref = "oneconfig" }
+oneconfig-config = { module = "org.polyfrost.oneconfig:config", version.ref = "oneconfig" }
+oneconfig-config-impl = { module = "org.polyfrost.oneconfig:config-impl", version.ref = "oneconfig" }
+oneconfig-internal = { module = "org.polyfrost.oneconfig:internal", version.ref = "oneconfig" }
+oneconfig-ui = { module = "org.polyfrost.oneconfig:ui", version.ref = "oneconfig" }
+oneconfig-utils = { module = "org.polyfrost.oneconfig:utils", version.ref = "oneconfig" }
+argentum = { module = "dev.rdh:argentum", version.ref = "argentum" }
+overflowparticles = { module = "maven.modrinth:overflowparticles", version.ref = "overflowparticles" }
+celeritas = { module = "org.embeddedt.celeritas:celeritas-common", version.ref = "celeritas" }
+joml = { module = "org.joml:joml", version.ref = "joml" }
+
+[bundles]
+oneconfig = ["oneconfig-config", "oneconfig-config-impl", "oneconfig-internal", "oneconfig-ui", "oneconfig-utils"]
+
+[plugins]
+kotlin = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+loom = { id = "fabric-loom", version.ref = "loom" }
+ploceus = { id = "ploceus", version.ref = "ploceus" }

@@ -1,9 +1,9 @@
 {
 	"schemaVersion": 1,
-	"id": "${id}",
+	"id": "overflowanimations",
 	"version": "${version}",
-	"name": "${name}",
-	"description": "${description}",
+	"name": "OverflowAnimations",
+	"description": "1.7 animations for Minecraft 1.8.9.",
 	"authors": [
 		"Mixces",
 		"lowercasebtw"
@@ -14,11 +14,11 @@
 		"Wyvest"
 	],
 	"contact": {
-		"sources": "${source}",
-		"issues": "${issues}"
+		"sources": "https://github.com/Polyfrost/OverflowAnimationsV2",
+		"issues": "https://github.com/Polyfrost/OverflowAnimationsV2/issues"
 	},
-	"license": "${license}",
-	"icon": "assets/${id}/icon.png",
+	"license": "GPL-3.0-with-linking-exception",
+	"icon": "assets/overflowanimations/icon.png",
 	"environment": "client",
 	"entrypoints": {
 		"client": [
@@ -33,8 +33,8 @@
 	],
 	"provides": ["animatium"],
 	"depends": {
-		"fabricloader": ">=${fabric_loader_version}",
-		"minecraft": "${minecraft_version}",
+		"fabricloader": ">=${loader}",
+		"minecraft": "${minecraft}",
 		"fabric-language-kotlin": "*",
 		"oneconfigv1": ">=1.4.0"
 	}
