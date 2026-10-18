@@ -20,6 +20,17 @@
 	"license": "${license}",
 	"icon": "assets/${id}/icon.png",
 	"environment": "client",
+	"entrypoints": {
+		"client": [
+			{
+				"adapter": "kotlin",
+				"value": "org.polyfrost.overflowanimations.OverflowAnimationsLegacy"
+			}
+		]
+	},
+	"mixins": [
+		"overflowanimations.mixins.json"
+	],
 	"provides": ["animatium"],
 	"depends": {
 		"fabricloader": ">=${fabric_loader_version}",

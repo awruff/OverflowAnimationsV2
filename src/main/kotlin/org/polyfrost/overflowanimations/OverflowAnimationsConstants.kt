@@ -26,5 +26,5 @@
 package org.polyfrost.overflowanimations
 
 object OverflowAnimationsConstants {
-    const val MOD_ID = "@MODID@"
+    const val MOD_ID = "overflowanimations"
 }

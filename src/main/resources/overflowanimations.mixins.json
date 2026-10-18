@@ -7,5 +7,30 @@
 	},
 	"mixinextras": {
 		"minVersion": "0.5.0"
-	}
+	},
+	"client": [
+		"compat.MixinGuiItemGlints_Argentum",
+		"entity.MixinItemEntityRenderer_DroppedItems",
+		"firstperson.MixinItemInHandRenderer_EquipAnimation",
+		"firstperson.MixinItemInHandRenderer_ItemPositions",
+		"firstperson.MixinItemInHandRenderer_Swing",
+		"firstperson.MixinItemRenderer_FirstPersonTransform",
+		"firstperson.MixinLivingEntity_SwingAccessor",
+		"firstperson.MixinMinecraft_Swinging",
+		"hud.MixinGameGui_HealthFlash",
+		"model.MixinGameRenderer_SneakCamera",
+		"model.MixinHumanoidModel_OldSneak",
+		"model.MixinHumanoidModel_SwordBlocking",
+		"model.MixinItemInHandLayer_ThirdPersonPositions",
+		"model.MixinPlayerRenderer_OldSneak",
+		"model.MixinWornSkullLayer_OldSneak",
+		"tint.MixinAbstractArmorLayer_DamageTint",
+		"tint.MixinItemRenderer_Glint",
+		"tint.MixinLivingEntityRenderer_DamageTint",
+		"tint.MixinLivingEntityRenderer_DamageTintInvoker",
+		"tint.MixinMobLayers_DamageTint",
+		"tint.MixinPigSaddleLayer_DamageTint",
+		"tint.MixinSheepFurLayer_DamageTint",
+		"tint.MixinUntintedLayers_DamageTint"
+	]
 }
