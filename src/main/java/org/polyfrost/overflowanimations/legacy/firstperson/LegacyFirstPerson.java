@@ -35,6 +35,8 @@ import net.minecraft.block.FurnaceBlock;
 import net.minecraft.block.PumpkinBlock;
 import net.minecraft.block.SnowLayerBlock;
 import net.minecraft.block.TrapdoorBlock;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.entity.living.player.LocalClientPlayerEntity;
 import net.minecraft.client.render.model.block.BakedModel;
 import net.minecraft.client.render.platform.GlStateManager;
 import net.minecraft.enchantment.EnchantmentHelper;
@@ -46,21 +48,15 @@ import net.minecraft.entity.living.player.PlayerEntity;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.SwordItem;
+import net.minecraft.item.UseAction;
 import org.polyfrost.overflowanimations.OverflowAnimations;
 import org.polyfrost.overflowanimations.config.OverflowAnimationsConfig;
-import org.polyfrost.overflowanimations.config.category.ItemsConfigCategory;
 import org.polyfrost.overflowanimations.handler.compatibility.ModsKt;
 import org.polyfrost.overflowanimations.handler.compatibility.OverflowParticlesCompat;
 import org.polyfrost.overflowanimations.mixins.legacy.firstperson.MixinLivingEntity_SwingAccessor;
-import org.polyfrost.overflowanimations.util.enums.FishingRodVersionSetting;
 
 public final class LegacyFirstPerson {
     private LegacyFirstPerson() {
-    }
-
-    public static ItemsConfigCategory items() {
-        return OverflowAnimationsConfig.instance().items;
     }
 
     public static void fakeSwing(LivingEntity entity) {
@@ -87,63 +83,36 @@ public final class LegacyFirstPerson {
         }
     }
 
-    public static boolean cannotMine(PlayerEntity player, Block block) {
-        if (player.canModifyWorld()) {
-            return false;
-        }
-        final ItemStack stack = player.getItemInHand();
-        return block == null || stack == null || !stack.hasMineBlockOverride(block);
-    }
-
-    public static int swingDuration(LivingEntity entity, int original) {
-        final ItemsConfigCategory items = items();
-        if (!OverflowAnimations.isEnabled() || !items.customSwingSpeed) {
-            return original;
-        }
-        if (entity.hasStatusEffect(StatusEffect.HASTE) && !items.ignoreHasteSpeed) {
-            return scaleSwingDuration(6 - (1 + entity.getEffectInstance(StatusEffect.HASTE).getAmplifier()), items.hasteSwingSpeed);
-        } else if (entity.hasStatusEffect(StatusEffect.MINING_FATIGUE) && !items.ignoreMiningFatigueSpeed) {
-            return scaleSwingDuration(6 + (1 + entity.getEffectInstance(StatusEffect.MINING_FATIGUE).getAmplifier()) * 2, items.miningFatigueSwingSpeed);
-        } else {
-            return scaleSwingDuration(6, items.itemSwingSpeed);
-        }
-    }
-
-    private static int scaleSwingDuration(int duration, float speed) {
-        return Math.max((int) (duration * Math.exp(-speed)), 1);
-    }
-
-    public static boolean isThinBlock(Block block) {
+    private static boolean isThinBlock(Block block) {
         return block instanceof CarpetBlock || block instanceof SnowLayerBlock || block instanceof DaylightDetectorBlock || block instanceof TrapdoorBlock;
     }
 
-    public static boolean isBlockLike(BakedModel model) {
-        return model.isGui3d() || model.isCustomRenderer();
+    private static boolean isBlocking(ItemStack stack) {
+        final LocalClientPlayerEntity player = Minecraft.getInstance().player;
+        return player != null && player.getItemUseTimer() > 0 && stack.getUseAction() == UseAction.BLOCK;
     }
 
     public static boolean applyFirstPersonTransform(ItemStack stack, BakedModel model) {
         if (!OverflowAnimations.isEnabled()) {
             return false;
         }
-        final ItemsConfigCategory items = items();
+        final OverflowAnimationsConfig config = OverflowAnimationsConfig.instance();
         final Item item = stack.getItem();
         final Block block = item instanceof BlockItem ? ((BlockItem) item).getBlock() : null;
         if (model.isCustomRenderer()) {
-            if (items.itemPositions && !items.lunarItemPositions && (block instanceof ChestBlock || block instanceof EnderChestBlock)) {
+            if (config.itemTransformations.isOld() && (block instanceof ChestBlock || block instanceof EnderChestBlock)) {
                 GlStateManager.rotatef(-90.0F, 0.0F, 1.0F, 0.0F);
             }
             return false;
         }
 
         if (model.isGui3d()) {
-            if (block == null || items.lunarItemPositions) {
+            if (block == null || !config.itemTransformations.isOld()) {
                 return false;
             }
-            if (items.itemPositions) {
-                final boolean frontOnSouth = block instanceof FurnaceBlock || block instanceof DispenserBlock || block instanceof PumpkinBlock;
-                GlStateManager.rotatef(frontOnSouth ? 270.0F : 90.0F, 0.0F, 1.0F, 0.0F);
-            }
-            if (items.thinBlockPositions && isThinBlock(block)) {
+            final boolean frontOnSouth = block instanceof FurnaceBlock || block instanceof DispenserBlock || block instanceof PumpkinBlock;
+            GlStateManager.rotatef(frontOnSouth ? 270.0F : 90.0F, 0.0F, 1.0F, 0.0F);
+            if (isThinBlock(block)) {
                 if (block instanceof TrapdoorBlock) {
                     GlStateManager.translatef(0.0F, 6.5F / 32.0F, 0.0F);
                 }
@@ -152,15 +121,12 @@ public final class LegacyFirstPerson {
             return false;
         }
 
-        if (items.lunarItemPositions) {
-            return false;
-        }
         if (item.isFlippedWhenWielded()) {
-            if (items.fishingRodVersion != FishingRodVersionSetting.V1_7) {
+            if (!config.rodPosition.isOld()) {
                 return false;
             }
             GlStateManager.rotatef(180.0F, 0.0F, 1.0F, 0.0F);
-        } else if (!items.itemPositions || (items.lunarBlockHitPosition && item instanceof SwordItem)) {
+        } else if (!(isBlocking(stack) ? config.blockAnimation : config.firstPersonItemPositions).isOld()) {
             return false;
         }
         applyLegacyItemTransform();

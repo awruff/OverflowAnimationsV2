@@ -25,45 +25,6 @@
 
 package org.polyfrost.overflowanimations
 
-//? if >=1.21.5
-import net.fabricmc.fabric.api.client.model.loading.v1.ExtraModelKey
-//? if >=1.21.5 <26.1 {
-/*import net.minecraft.client.renderer.block.model.BlockStateModel
-*///?} elif >=26.1 {
-import net.minecraft.client.renderer.block.dispatch.BlockStateModel
-//?}
-//? if >1.8.9
-import org.polyfrost.overflowanimations.handler.networking.payloads.InfoPayload
-//? if >1.8.9
-import org.polyfrost.overflowanimations.util.version.Version
-import java.lang.Boolean.parseBoolean
-import java.util.*
-
 object OverflowAnimationsConstants {
     const val MOD_ID = "@MODID@"
-    const val DEVELOPMENT_VERSION = "@COMMIT@"
-
-    //? if >1.8.9 {
-    @JvmField
-    val VERSION = Version.parse("@VERSION@") ?: Version.BOGUS
-    //?}
-
-    @JvmField
-    val IS_DEVELOPMENT = parseBoolean("@DEVELOPMENT@")
-
-    //? if >1.8.9 {
-    @JvmField
-    val FAST_GRASS_MODEL_LOCATION = OverflowAnimations.location("block/fast_grass_block")
-
-    // Block state models and extra model keys arrived in 1.21.5
-    //? if >=1.21.5 {
-    @JvmField
-    val FAST_GRASS_MODEL_KEY: ExtraModelKey<BlockStateModel> =
-        ExtraModelKey.create(FAST_GRASS_MODEL_LOCATION::toString)
-    //?}
-
-    @JvmField
-    val INFO_PAYLOAD =
-        InfoPayload(VERSION, if (IS_DEVELOPMENT) Optional.of(DEVELOPMENT_VERSION) else Optional.empty())
-    //?}
 }

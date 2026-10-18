@@ -29,7 +29,6 @@ import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.sugar.Local;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.render.GameRenderer;
-import net.minecraft.entity.Entity;
 import org.polyfrost.overflowanimations.legacy.model.LegacyEyeHeight;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -48,12 +47,12 @@ public abstract class MixinGameRenderer_SneakCamera {
     }
 
     @ModifyExpressionValue(method = "transformCamera", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/Entity;getEyeHeight()F"))
-    private float overflowanimations$cameraEyeHeight(final float original, @Local final Entity entity, @Local(argsOnly = true) final float tickDelta) {
-        return LegacyEyeHeight.get(entity, original, tickDelta);
+    private float overflowanimations$cameraEyeHeight(final float original, @Local(argsOnly = true) final float tickDelta) {
+        return LegacyEyeHeight.get(original, tickDelta);
     }
 
     @ModifyExpressionValue(method = "renderAxisIndicators", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/Entity;getEyeHeight()F"))
-    private float overflowanimations$axisIndicatorEyeHeight(final float original, @Local final Entity entity, @Local(argsOnly = true) final float tickDelta) {
-        return LegacyEyeHeight.get(entity, original, tickDelta);
+    private float overflowanimations$axisIndicatorEyeHeight(final float original, @Local(argsOnly = true) final float tickDelta) {
+        return LegacyEyeHeight.get(original, tickDelta);
     }
 }

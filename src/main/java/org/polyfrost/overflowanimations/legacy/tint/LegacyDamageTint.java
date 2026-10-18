@@ -32,9 +32,7 @@ import net.minecraft.entity.living.LivingEntity;
 import org.lwjgl.opengl.GL11;
 import org.polyfrost.overflowanimations.OverflowAnimations;
 import org.polyfrost.overflowanimations.config.OverflowAnimationsConfig;
-import org.polyfrost.overflowanimations.config.category.OtherConfigCategory;
 import org.polyfrost.overflowanimations.legacy.compat.Argentum;
-import org.polyfrost.overflowanimations.util.enums.DamageTintSetting;
 
 import java.nio.FloatBuffer;
 
@@ -42,8 +40,12 @@ public final class LegacyDamageTint {
     private LegacyDamageTint() {
     }
 
-    public static OtherConfigCategory config() {
-        return OverflowAnimationsConfig.instance().other;
+    public static OverflowAnimationsConfig config() {
+        return OverflowAnimationsConfig.instance();
+    }
+
+    private static int color(final float brightness) {
+        return 0x99000000 | (int) (brightness * 255.0F) << 16;
     }
 
     public static boolean isHurt(final Entity entity) {
@@ -51,20 +53,19 @@ public final class LegacyDamageTint {
     }
 
     public static boolean flatTint() {
-        return OverflowAnimations.isEnabled() && config().damageTintStyle == DamageTintSetting.V1_7 && !Argentum.capturingEntity();
+        return OverflowAnimations.isEnabled() && config().hitColorBrightness.isOld() && !Argentum.capturingEntity();
     }
 
     public static boolean usesFlatPass(final Entity entity) {
         return flatTint() && isHurt(entity);
     }
 
-    public static void putCombinerTint(final FloatBuffer buffer, final float brightness) {
-        final DamageTintSetting style = config().damageTintStyle;
-        if (!OverflowAnimations.isEnabled() || style == DamageTintSetting.VANILLA) {
+    public static void putCombinerTint(final FloatBuffer buffer) {
+        if (!OverflowAnimations.isEnabled() || !config().hitColorBrightness.isOld()) {
             return;
         }
 
-        final int color = style.getColor(style == DamageTintSetting.V1_7 ? 1.0F : brightness);
+        final int color = color(1.0F);
         buffer.clear();
         buffer.put((color >> 16 & 0xFF) / 255.0F).put((color >> 8 & 0xFF) / 255.0F).put((color & 0xFF) / 255.0F).put(1.0F - (color >>> 24) / 255.0F);
     }
@@ -74,7 +75,7 @@ public final class LegacyDamageTint {
             return false;
         }
 
-        final int color = DamageTintSetting.V1_7.getColor(entity.getBrightness(tickDelta));
+        final int color = color(entity.getBrightness(tickDelta));
         Minecraft.getInstance().gameRenderer.disableLightMap();
         GlStateManager.disableTexture();
         GlStateManager.disableAlphaTest();

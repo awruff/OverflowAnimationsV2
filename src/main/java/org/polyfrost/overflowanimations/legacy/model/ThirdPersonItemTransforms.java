@@ -25,15 +25,10 @@
 
 package org.polyfrost.overflowanimations.legacy.model;
 
-import net.minecraft.block.AbstractPressurePlateBlock;
 import net.minecraft.block.Block;
-import net.minecraft.block.CarpetBlock;
-import net.minecraft.block.DaylightDetectorBlock;
 import net.minecraft.block.DispenserBlock;
 import net.minecraft.block.FurnaceBlock;
 import net.minecraft.block.PumpkinBlock;
-import net.minecraft.block.SnowLayerBlock;
-import net.minecraft.block.TrapdoorBlock;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.render.model.block.BakedModel;
 import net.minecraft.client.render.platform.GlStateManager;
@@ -47,11 +42,8 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.item.UseAction;
 import org.polyfrost.overflowanimations.config.OverflowAnimationsConfig;
-import org.polyfrost.overflowanimations.config.category.ItemsConfigCategory;
 
 public final class ThirdPersonItemTransforms {
-    private static final float BLOCK_TRANSLATION_Y = 1.5F / 16.0F;
-
     private ThirdPersonItemTransforms() {
     }
 
@@ -61,23 +53,18 @@ public final class ThirdPersonItemTransforms {
             return;
         }
 
-        final ItemsConfigCategory items = OverflowAnimationsConfig.instance().items;
+        final OverflowAnimationsConfig config = OverflowAnimationsConfig.instance();
         final Item item = stack.getItem();
         final boolean isBlock = model.isGui3d() && item instanceof BlockItem;
-        final boolean swordBlocking = OverflowAnimationsConfig.instance().other.thirdPersonSwordBlockingPosition &&
+        final boolean swordBlocking = config.thirdPersonBlockAnimation.isOld() &&
                 entity instanceof PlayerEntity && ((PlayerEntity) entity).getItemUseTimer() > 0 && stack.getUseAction() == UseAction.BLOCK;
         final ModelTransformation transformation = model.getTransformations().get(ModelTransformations.Type.THIRD_PERSON);
-        final boolean legacy = items.itemPositionsInThirdPerson && (entity instanceof PlayerEntity || items.entityItemPositions) &&
-                (!items.strictItemPositionsInThirdPerson || isBlock || item == Items.BOW || isHandheld(item)) &&
+        final boolean legacy = config.thirdPersonItemPositions.isOld() && (isBlock || item == Items.BOW || isHandheld(item)) &&
                 transformation.scale.x != 0.0F && transformation.scale.y != 0.0F && transformation.scale.z != 0.0F;
 
         if (!legacy) {
             if (swordBlocking) {
                 applySwordBlocking();
-            }
-
-            if (items.thinBlockPositions && isBlock && isThinBlock(Block.byItem(item)) && transformation.translation.y < BLOCK_TRANSLATION_Y) {
-                GlStateManager.translatef(0.0F, 2.0F * (BLOCK_TRANSLATION_Y - transformation.translation.y), 0.0F);
             }
 
             return;
@@ -161,10 +148,5 @@ public final class ThirdPersonItemTransforms {
 
     private static boolean isHandheld(final Item item) {
         return item.isWielded() && item != Items.BLAZE_ROD;
-    }
-
-    private static boolean isThinBlock(final Block block) {
-        return block instanceof CarpetBlock || block instanceof TrapdoorBlock || block instanceof AbstractPressurePlateBlock ||
-                block instanceof SnowLayerBlock || block instanceof DaylightDetectorBlock;
     }
 }

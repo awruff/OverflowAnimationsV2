@@ -25,20 +25,15 @@
 
 package org.polyfrost.overflowanimations.handler.compatibility
 
-//? if <=1.8.9 {
-/*import net.minecraft.entity.Entity
-import net.minecraft.entity.living.player.PlayerEntity as Player
-*///?} else {
-import net.minecraft.world.entity.Entity
-import net.minecraft.world.entity.player.Player
-//?}
+import net.minecraft.entity.Entity
+import net.minecraft.entity.living.player.PlayerEntity
 import org.polyfrost.oneconfig.api.event.v1.EventManager
 import org.polyfrost.overflowparticles.client.config.OverflowParticlesConfig
 import org.polyfrost.overflowparticles.client.event.AttackEntityEvent
 
 object OverflowParticlesCompat {
     @JvmStatic
-    fun postAttack(player: Player, target: Entity) {
+    fun postAttack(player: PlayerEntity, target: Entity) {
         if (OverflowParticlesConfig.checkInvulnerable) {
             return
         }

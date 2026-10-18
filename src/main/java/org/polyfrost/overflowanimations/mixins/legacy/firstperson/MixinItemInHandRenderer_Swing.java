@@ -25,35 +25,21 @@
 
 package org.polyfrost.overflowanimations.mixins.legacy.firstperson;
 
-import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
-import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
-import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
-import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.entity.living.player.LocalClientPlayerEntity;
 import net.minecraft.client.render.ItemInHandRenderer;
-import net.minecraft.client.render.entity.ItemRenderer;
-import net.minecraft.client.render.platform.GlStateManager;
 import net.minecraft.item.ItemStack;
 import org.polyfrost.overflowanimations.OverflowAnimations;
 import org.polyfrost.overflowanimations.config.OverflowAnimationsConfig;
-import org.polyfrost.overflowanimations.config.category.ItemsConfigCategory;
-import org.polyfrost.overflowanimations.legacy.firstperson.LegacyFirstPerson;
+import org.polyfrost.overflowanimations.util.enums.LegacyVersion;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(ItemInHandRenderer.class)
 public abstract class MixinItemInHandRenderer_Swing {
-    @Unique
-    private static final float overflowanimations$PIVOT_MULTIPLIER = 0.05F;
-
     @Shadow
     @Final
     private Minecraft minecraft;
@@ -61,65 +47,18 @@ public abstract class MixinItemInHandRenderer_Swing {
     @Shadow
     private ItemStack itemInHand;
 
-    @Shadow
-    @Final
-    private ItemRenderer renderer;
-
-    @Unique
-    private boolean overflowanimations$movesSwingPivot() {
-        final ItemsConfigCategory items = LegacyFirstPerson.items();
-        return OverflowAnimations.isEnabled() && items.disableSwingPivot && (items.applyCustomizationToBlockItems || this.itemInHand == null || !LegacyFirstPerson.isBlockLike(this.renderer.getModelShaper().getModel(this.itemInHand)));
-    }
-
     @ModifyArg(method = "renderInFirstPerson", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/ItemInHandRenderer;applyFirstPersonTransform(FF)V"), index = 1)
-    private float overflowanimations$itemUsageSwinging(final float swingProgress, @Local(argsOnly = true) final float tickDelta) {
-        return OverflowAnimations.isEnabled() && LegacyFirstPerson.items().itemUsageSwinging ? this.minecraft.player.getAttackAnimationProgress(tickDelta) : swingProgress;
-    }
-
-    @ModifyExpressionValue(method = "renderInFirstPerson", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/entity/living/player/ClientPlayerEntity;getItemUseTimer()I"))
-    private int overflowanimations$itemUsageVisualInGUI(final int original) {
-        return OverflowAnimations.isEnabled() && OverflowAnimationsConfig.instance().fixes.fixItemUsageVisualInGUI && this.minecraft.screen != null ? 0 : original;
-    }
-
-    @WrapWithCondition(method = "renderInFirstPerson", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/ItemInHandRenderer;applyHandSway(Lnet/minecraft/client/entity/living/player/LocalClientPlayerEntity;F)V"))
-    private boolean overflowanimations$disableHandSway(final ItemInHandRenderer instance, final LocalClientPlayerEntity player, final float tickDelta) {
-        return !(OverflowAnimations.isEnabled() && LegacyFirstPerson.items().disableHandSway);
-    }
-
-    @WrapOperation(method = "applyArmSwing", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/platform/GlStateManager;translatef(FFF)V"))
-    private void overflowanimations$swingTranslate(final float x, final float y, final float z, final Operation<Void> original) {
-        if (!OverflowAnimations.isEnabled()) {
-            original.call(x, y, z);
-            return;
+    private float overflowanimations$swingWhileUsing(final float swingProgress, @Local(argsOnly = true) final float tickDelta) {
+        if (!OverflowAnimations.isEnabled() || this.itemInHand == null || this.minecraft.player.getItemUseTimer() <= 0) {
+            return swingProgress;
         }
-        final ItemsConfigCategory items = LegacyFirstPerson.items();
-        if (items.disableSwingTranslate) {
-            return;
-        }
-        float scaleX = 1.0F + items.swingPositionX;
-        float scaleY = 1.0F - items.swingPositionY;
-        float scaleZ = 1.0F + items.swingPositionZ;
-        if (items.smartSwingScaling) {
-            scaleX *= items.itemScaleX;
-            scaleY *= items.itemScaleY;
-            scaleZ *= items.itemScaleZ;
-        }
-        original.call(x * scaleX, y * scaleY, z * scaleZ);
-    }
-
-    @Inject(method = "applyFirstPersonTransform", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/platform/GlStateManager;rotatef(FFFF)V", ordinal = 1))
-    private void overflowanimations$preSwingPivot(final float equipProgress, final float swingProgress, final CallbackInfo ci) {
-        final ItemsConfigCategory items = LegacyFirstPerson.items();
-        if (this.overflowanimations$movesSwingPivot()) {
-            GlStateManager.translatef(items.itemOffsetX * overflowanimations$PIVOT_MULTIPLIER, items.itemOffsetY * overflowanimations$PIVOT_MULTIPLIER, items.itemOffsetZ * overflowanimations$PIVOT_MULTIPLIER);
-        }
-    }
-
-    @Inject(method = "applyFirstPersonTransform", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/platform/GlStateManager;rotatef(FFFF)V", ordinal = 3, shift = At.Shift.AFTER))
-    private void overflowanimations$postSwingPivot(final float equipProgress, final float swingProgress, final CallbackInfo ci) {
-        final ItemsConfigCategory items = LegacyFirstPerson.items();
-        if (this.overflowanimations$movesSwingPivot()) {
-            GlStateManager.translatef(-items.itemOffsetX * overflowanimations$PIVOT_MULTIPLIER, -items.itemOffsetY * overflowanimations$PIVOT_MULTIPLIER, -items.itemOffsetZ * overflowanimations$PIVOT_MULTIPLIER);
-        }
+        final OverflowAnimationsConfig config = OverflowAnimationsConfig.instance();
+        final LegacyVersion version = switch (this.itemInHand.getUseAction()) {
+            case EAT, DRINK -> config.consumeAnimation;
+            case BLOCK -> config.blockHittingAnimation;
+            case BOW -> config.bowPullback;
+            default -> LegacyVersion.V1_8;
+        };
+        return version.isOld() ? this.minecraft.player.getAttackAnimationProgress(tickDelta) : swingProgress;
     }
 }

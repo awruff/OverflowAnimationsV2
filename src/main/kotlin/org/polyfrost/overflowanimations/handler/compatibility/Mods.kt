@@ -28,13 +28,4 @@ package org.polyfrost.overflowanimations.handler.compatibility
 import net.fabricmc.loader.api.FabricLoader
 
 @JvmField
-val HAS_VFP = FabricLoader.getInstance().isModLoaded("viafabricplus")
-
-@JvmField
-val HAS_LUNAR_CLIENT = FabricLoader.getInstance().isModLoaded("ichor")
-
-@JvmField
 val HAS_OVERFLOW_PARTICLES = FabricLoader.getInstance().isModLoaded("overflowparticles")
-
-@JvmField
-val HAS_BETTER_HURT_CAM = FabricLoader.getInstance().isModLoaded("betterhurtcam")

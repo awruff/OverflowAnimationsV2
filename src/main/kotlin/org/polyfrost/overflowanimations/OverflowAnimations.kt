@@ -25,28 +25,11 @@
 
 package org.polyfrost.overflowanimations
 
-//? if >1.8.9 {
-import com.mojang.logging.LogUtils
-import net.minecraft.SharedConstants
-//?}
 import net.minecraft.client.Minecraft
-//? if >=1.21.9
-import net.minecraft.client.gui.components.debug.DebugScreenEntries
-//? if >1.8.9
-import net.minecraft.resources.Identifier
 import org.polyfrost.overflowanimations.config.OverflowAnimationsConfig
-//? if >=1.21.6
-import org.polyfrost.overflowanimations.handler.rendering.lighting.LegacyDiffuseLighting
-//? if >=1.21.9
-import org.polyfrost.overflowanimations.handler.screen.debug.OverflowAnimationsDebugEntry
 import org.polyfrost.overflowanimations.util.config.GeneralConfigUtil
-//? if >1.8.9
-import org.polyfrost.overflowanimations.util.reinitializeInventorySlots
 
 object OverflowAnimations {
-    //? if >1.8.9
-    private val LOGGER = LogUtils.getLogger()
-
     @JvmStatic
     var enabled = true
         set(value) {
@@ -59,56 +42,15 @@ object OverflowAnimations {
 
     @JvmStatic
     fun reloadIfInWorld() {
-        //? if <=1.8.9 {
-        /*if (Minecraft.getInstance().world != null) reload()
-        *///?} else {
-        if (Minecraft.getInstance().level != null) reload()
-        //?}
+        if (Minecraft.getInstance().world != null) reload()
     }
 
     @JvmStatic
     fun reload() {
-        val minecraft = Minecraft.getInstance()
-        //? if <=1.8.9 {
-        /*minecraft.worldRenderer.reload()
-        *///?} elif <26.2 {
-        /*minecraft.levelRenderer.allChanged()
-        *///?} else {
-        minecraft.levelExtractor.allChanged()
-        //?}
-        //? if >=1.21.6
-        LegacyDiffuseLighting.refresh()
-        //? if >1.8.9
-        reinitializeInventorySlots()
+        Minecraft.getInstance().worldRenderer.reload()
     }
 
-    //? if >1.8.9 {
     @JvmStatic
-    fun location(path: String) = Identifier.fromNamespaceAndPath(OverflowAnimationsConstants.MOD_ID, path)
-
-    // Network channels of Animatium, which this mod is based on, so servers built for it keep working
-    fun animatiumLocation(path: String) = Identifier.fromNamespaceAndPath("animatium", path)
-
-    @JvmStatic
-    fun initialize() {
-        if (OverflowAnimationsConstants.IS_DEVELOPMENT) {
-            SharedConstants.IS_RUNNING_IN_IDE = true
-        }
-
-        OverflowAnimationsConfig.load()
-        try {
-            GeneralConfigUtil.load()
-            enabled = GeneralConfigUtil.getBoolean(GeneralConfigUtil.ENABLED_KEY)
-            LOGGER.info("Successfully loaded the overflowanimations utility config!")
-        } catch (_: Exception) {
-            LOGGER.error("Failed to load overflowanimations utility config, defaulting...")
-        }
-
-        //? if >=1.21.9
-        DebugScreenEntries.register(OverflowAnimationsDebugEntry.GROUP, OverflowAnimationsDebugEntry())
-    }
-    //?} else {
-    /*@JvmStatic
     fun initialize() {
         OverflowAnimationsConfig.load()
         try {
@@ -117,5 +59,4 @@ object OverflowAnimations {
         } catch (_: Exception) {
         }
     }
-    *///?}
 }

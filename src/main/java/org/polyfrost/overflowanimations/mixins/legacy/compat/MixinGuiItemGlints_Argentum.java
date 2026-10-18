@@ -35,7 +35,6 @@ import org.lwjgl.opengl.GL11;
 import org.polyfrost.overflowanimations.OverflowAnimations;
 import org.polyfrost.overflowanimations.config.OverflowAnimationsConfig;
 import org.polyfrost.overflowanimations.legacy.tint.LegacyGlint;
-import org.polyfrost.overflowanimations.util.enums.ItemGlintSetting;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Pseudo;
@@ -70,27 +69,15 @@ public abstract class MixinGuiItemGlints_Argentum {
 
     @Inject(method = "drawPass", at = @At("HEAD"), cancellable = true)
     private void overflowanimations$glintStyle(final int period, final float direction, final float rotation, final CallbackInfo ci) {
-        final ItemGlintSetting style = OverflowAnimationsConfig.instance().items.itemGlint;
-        if (!OverflowAnimations.isEnabled() || (style != ItemGlintSetting.V1_15 && style != ItemGlintSetting.V1_7)) {
+        if (!OverflowAnimations.isEnabled() || !OverflowAnimationsConfig.instance().oldEnchantmentGlint.isOld()) {
             return;
         }
 
         ci.cancel();
-        final boolean modern = style == ItemGlintSetting.V1_15;
-        if (modern && direction < 0.0F) {
-            return; // single layer
-        }
-
         GlStateManager.loadIdentity();
-        if (modern) {
-            Minecraft.getInstance().getTextureManager().bind(LegacyGlint.MODERN_ITEM_TEXTURE);
-            LegacyGlint.color(LegacyGlint.itemColor(LegacyGlint.gray(LegacyGlint.modernStrength()), 0));
-            LegacyGlint.setupModernTexturing(8.0F, LegacyGlint.modernSpeed());
-        } else {
-            LegacyGlint.color(LegacyGlint.itemColor(LegacyGlint.GUI_ITEM_COLOR, direction > 0.0F ? 0 : 1));
-            GlStateManager.blendFuncSeparate(GL11.GL_ONE, GL11.GL_ONE, GL11.GL_SRC_COLOR, GL11.GL_ONE);
-            GlStateManager.translatef((float) (Minecraft.getTime() % period) / period, 0.0F, 0.0F);
-        }
+        LegacyGlint.color(LegacyGlint.GUI_ITEM_COLOR);
+        GlStateManager.blendFuncSeparate(GL11.GL_ONE, GL11.GL_ONE, GL11.GL_SRC_COLOR, GL11.GL_ONE);
+        GlStateManager.translatef((float) (Minecraft.getTime() % period) / period, 0.0F, 0.0F);
 
         final float skew = direction > 0.0F ? 4.0F : -1.0F;
         final float texel = 1.0F / 256.0F;
@@ -108,29 +95,12 @@ public abstract class MixinGuiItemGlints_Argentum {
             final float y0 = y - 4.0F;
             final float x1 = x + 20.0F;
             final float y1 = y + 20.0F;
-            final float gu0;
-            final float gv0;
-            final float gu1;
-            final float gv1;
-            if (modern) {
-                final float padU = (this.data[at + 7] - this.data[at + 5]) * 4.0F / 16.0F;
-                final float padV = (this.data[at + 8] - this.data[at + 6]) * 4.0F / 16.0F;
-                gu0 = this.data[at + 5] - padU;
-                gv0 = this.data[at + 6] - padV;
-                gu1 = this.data[at + 7] + padU;
-                gv1 = this.data[at + 8] + padV;
-                this.vertex(x0, y1, z, u, v, gu0, gv1);
-                this.vertex(x1, y1, z, u + extent, v, gu1, gv1);
-                this.vertex(x1, y0, z, u + extent, v + extent, gu1, gv0);
-                this.vertex(x0, y0, z, u, v + extent, gu0, gv0);
-            } else {
-                final float left = x - 2.0F;
-                final float top = y - 2.0F;
-                this.vertex(x0, y1, z, u, v, (x0 - left + (y1 - top) * skew) * texel, (y1 - top) * texel);
-                this.vertex(x1, y1, z, u + extent, v, (x1 - left + (y1 - top) * skew) * texel, (y1 - top) * texel);
-                this.vertex(x1, y0, z, u + extent, v + extent, (x1 - left + (y0 - top) * skew) * texel, (y0 - top) * texel);
-                this.vertex(x0, y0, z, u, v + extent, (x0 - left + (y0 - top) * skew) * texel, (y0 - top) * texel);
-            }
+            final float left = x - 2.0F;
+            final float top = y - 2.0F;
+            this.vertex(x0, y1, z, u, v, (x0 - left + (y1 - top) * skew) * texel, (y1 - top) * texel);
+            this.vertex(x1, y1, z, u + extent, v, (x1 - left + (y1 - top) * skew) * texel, (y1 - top) * texel);
+            this.vertex(x1, y0, z, u + extent, v + extent, (x1 - left + (y0 - top) * skew) * texel, (y0 - top) * texel);
+            this.vertex(x0, y0, z, u, v + extent, (x0 - left + (y0 - top) * skew) * texel, (y0 - top) * texel);
         }
         this.buffer.end();
         this.uploader.end(this.buffer);

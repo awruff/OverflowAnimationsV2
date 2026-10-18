@@ -23,26 +23,34 @@
  * "MINECRAFT" LINKING EXCEPTION TO THE GPL
  */
 
-package org.polyfrost.overflowanimations.mixins.legacy.entity;
+package org.polyfrost.overflowanimations.mixins.legacy.hud;
 
-import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
-import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
-import net.minecraft.entity.particle.ParticleType;
-import net.minecraft.entity.projectile.EggEntity;
-import net.minecraft.world.World;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GameGui;
 import org.polyfrost.overflowanimations.OverflowAnimations;
 import org.polyfrost.overflowanimations.config.OverflowAnimationsConfig;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.ModifyVariable;
 
-@Mixin(EggEntity.class)
-public abstract class MixinEggEntity_SnowballParticles {
-    @WrapOperation(method = "onCollision", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/World;addParticle(Lnet/minecraft/entity/particle/ParticleType;DDDDDD[I)V"))
-    private void overflowanimations$eggSnowballParticles(final World instance, final ParticleType type, final double x, final double y, final double z, final double velocityX, final double velocityY, final double velocityZ, final int[] parameters, final Operation<Void> original) {
-        if (OverflowAnimations.isEnabled() && OverflowAnimationsConfig.instance().items.eggSnowballParticles) {
-            original.call(instance, ParticleType.SNOWBALL, x, y, z, 0.0, 0.0, 0.0, new int[0]);
-        } else {
-            original.call(instance, type, x, y, z, velocityX, velocityY, velocityZ, parameters);
-        }
+@Mixin(GameGui.class)
+public abstract class MixinGameGui_HealthFlash {
+    @Shadow
+    @Final
+    private Minecraft minecraft;
+
+    @ModifyVariable(method = "renderStatusBars", at = @At(value = "STORE", ordinal = 0), index = 4)
+    private boolean overflowanimations$useOldHealthLogic(boolean value) { // thanks mixces <3
+        /* taken straight from 1.7 */
+        /* MC-2930 aimed to revert this... MC-73438 wants to bring this back.... there is no winning :/ */
+        if (OverflowAnimations.isEnabled() && OverflowAnimationsConfig.instance().healthBarFlashing.isOld()) {
+            boolean i3 = minecraft.player.getMaxHealth() / 3 % 2 == 1;
+            if (minecraft.player.getMaxHealth() < 10) {
+                i3 = false;
+            }
+            return i3;
+        } else return value;
     }
 }

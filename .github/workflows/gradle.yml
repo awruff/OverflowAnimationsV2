@@ -25,12 +25,8 @@ concurrency:
 
 jobs:
   build:
-    name: "Build ${{ matrix.version }}"
+    name: "Build"
     runs-on: "ubuntu-latest"
-    strategy:
-      fail-fast: false
-      matrix:
-        version: ["1.8.9", "1.21.4", "1.21.8", "1.21.10", "1.21.11", "26.1", "26.2", "26.3"]
 
     steps:
       - uses: actions/checkout@v6
@@ -38,21 +34,18 @@ jobs:
       - uses: actions/setup-java@v5
         with:
           distribution: "temurin"
-          java-version: |
-            21
-            25
+          java-version: 25
 
       - uses: gradle/actions/setup-gradle@v5
 
       - run: chmod +x ./gradlew
-      - name: Build Stonecutter version
-        run: |
-          ./gradlew ":${{ matrix.version }}:build"
+      - name: Build
+        run: ./gradlew build
 
       - name: Resolve built mod jar
         id: mod-jar
         run: |
-          mapfile -t jars < <(find "versions/${{ matrix.version }}/build/libs" -maxdepth 1 -type f -name '*.jar' ! -name '*-sources.jar' ! -name '*-dev.jar' | sort)
+          mapfile -t jars < <(find build/libs -maxdepth 1 -type f -name '*.jar' ! -name '*-sources.jar' ! -name '*-dev.jar' | sort)
 
           if [ "${#jars[@]}" -ne 1 ]; then
             printf 'Expected exactly one non-sources jar, found %s:\n' "${#jars[@]}"

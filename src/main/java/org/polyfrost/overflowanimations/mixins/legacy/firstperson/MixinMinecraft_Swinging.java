@@ -26,27 +26,21 @@
 package org.polyfrost.overflowanimations.mixins.legacy.firstperson;
 
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
-import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
-import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
-import com.llamalad7.mixinextras.sugar.Share;
-import com.llamalad7.mixinextras.sugar.ref.LocalBooleanRef;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.ClientPlayerInteractionManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.ParticleManager;
 import net.minecraft.client.entity.living.player.LocalClientPlayerEntity;
-import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.UseAction;
-import net.minecraft.network.packet.c2s.play.ArmSwingC2SPacket;
 import net.minecraft.world.HitResult;
 import org.polyfrost.overflowanimations.OverflowAnimations;
-import org.polyfrost.overflowanimations.config.category.ItemsConfigCategory;
 import org.polyfrost.overflowanimations.config.OverflowAnimationsConfig;
 import org.polyfrost.overflowanimations.legacy.firstperson.LegacyFirstPerson;
+import org.polyfrost.overflowanimations.util.enums.MissPenaltySetting;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -72,9 +66,6 @@ public abstract class MixinMinecraft_Swinging {
     public ClientPlayerInteractionManager interactionManager;
 
     @Shadow
-    public GameRenderer gameRenderer;
-
-    @Shadow
     private int attackCooldown;
 
     @Unique
@@ -88,76 +79,37 @@ public abstract class MixinMinecraft_Swinging {
 
     @Inject(method = "handleMouseDown", at = @At("HEAD"))
     private void overflowanimations$usageSwinging(final boolean holdingAttack, final CallbackInfo ci) {
-        final ItemsConfigCategory items = LegacyFirstPerson.items();
-        if (!OverflowAnimations.isEnabled() || !items.itemUsageSwinging || !holdingAttack || this.attackCooldown > 0 || !this.player.hasItemInUse()) {
+        final OverflowAnimationsConfig config = OverflowAnimationsConfig.instance();
+        if (!OverflowAnimations.isEnabled() || !config.punchingDuringUsage.isOld() || !holdingAttack || this.attackCooldown > 0 || !this.player.hasItemInUse() || this.overflowanimations$targetedBlock() == null) {
             return;
         }
-        final Block block = this.overflowanimations$targetedBlock();
-        final boolean adventure = LegacyFirstPerson.cannotMine(this.player, block);
-        if (block != null) {
-            if (items.usageSwingingParticles && !(adventure && items.disableAdventureUsageParticles)) {
-                this.particleManager.addBlockMiningParticles(this.crosshairTarget.getPos(), this.crosshairTarget.face);
-            }
-        } else if (!items.alwaysUsageSwing) {
-            return;
+        if (config.punchingDuringUsageParticles.isOld()) {
+            this.particleManager.addBlockMiningParticles(this.crosshairTarget.getPos(), this.crosshairTarget.face);
         }
-        if (!(adventure && items.disableAdventureUsageSwinging)) {
-            LegacyFirstPerson.fakeSwing(this.player);
-        }
+        LegacyFirstPerson.fakeSwing(this.player);
     }
 
     @Inject(method = "doAttack", at = @At("HEAD"))
-    private void overflowanimations$fakeMissPenaltySwing(final CallbackInfo ci) {
-        final ItemsConfigCategory items = LegacyFirstPerson.items();
-        if (!OverflowAnimations.isEnabled() || this.attackCooldown <= 0 || this.attackCooldown > 10 || this.crosshairTarget == null || !this.interactionManager.hasAttackCooldown()) {
+    private void overflowanimations$missPenalty(final CallbackInfo ci) {
+        final MissPenaltySetting behavior = OverflowAnimationsConfig.instance().missPenaltyBehavior;
+        if (!OverflowAnimations.isEnabled() || behavior == MissPenaltySetting.NOTHING || this.attackCooldown <= 0 || this.attackCooldown > 10 || this.crosshairTarget == null || !this.interactionManager.hasAttackCooldown()) {
             return;
         }
         if (this.crosshairTarget.type == HitResult.Type.BLOCK && this.overflowanimations$targetedBlock() == null) {
             return;
         }
-        if (items.fakeMissPenaltySwing) {
-            LegacyFirstPerson.fakeSwing(this.player);
-        }
-        if (items.fakeMissPenaltyParticles && this.crosshairTarget.type == HitResult.Type.ENTITY) {
+        LegacyFirstPerson.fakeSwing(this.player);
+        if (behavior == MissPenaltySetting.SWING_AND_PARTICLES && this.crosshairTarget.type == HitResult.Type.ENTITY) {
             LegacyFirstPerson.fakeAttackParticles(this.player, this.crosshairTarget.entity);
-        }
-    }
-
-    @WrapOperation(method = "doAttack", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/entity/living/player/LocalClientPlayerEntity;swingArm()V"))
-    private void overflowanimations$disableAdventureSwing(final LocalClientPlayerEntity instance, final Operation<Void> original) {
-        final Block block = this.overflowanimations$targetedBlock();
-        if (OverflowAnimations.isEnabled() && LegacyFirstPerson.items().disableAdventureSwing && block != null && LegacyFirstPerson.cannotMine(instance, block)) {
-            instance.networkHandler.sendPacket(new ArmSwingC2SPacket());
-        } else {
-            original.call(instance);
         }
     }
 
     @ModifyExpressionValue(method = "doUse", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/ClientPlayerInteractionManager;isMiningBlock()Z"))
     private boolean overflowanimations$blockHitWhileMining(final boolean original) {
-        if (!original || !OverflowAnimations.isEnabled() || !LegacyFirstPerson.items().blockHitWhileMining) {
+        if (!original || !OverflowAnimations.isEnabled() || !OverflowAnimationsConfig.instance().blockHittingAnimation.isOld()) {
             return original;
         }
         final ItemStack stack = this.player.getItemInHand();
         return stack == null || (stack.getUseAction() == UseAction.NONE && !(stack.getItem() instanceof BlockItem));
-    }
-
-    @Inject(method = "doUse", at = @At("HEAD"))
-    private void overflowanimations$captureUsing(final CallbackInfo ci, @Share("wasUsing") final LocalBooleanRef wasUsing) {
-        wasUsing.set(this.player.hasItemInUse());
-    }
-
-    @Inject(method = "doUse", at = @At("TAIL"))
-    private void overflowanimations$itemUseCooldownAnimation(final CallbackInfo ci, @Share("wasUsing") final LocalBooleanRef wasUsing) {
-        if (OverflowAnimations.isEnabled() && !OverflowAnimationsConfig.instance().fixes.useEquipAnimation.isLegacy() && !wasUsing.get() && this.player.hasItemInUse()) {
-            this.gameRenderer.itemInHandRenderer.onItemUsed();
-        }
-    }
-
-    @Inject(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/entity/living/player/LocalClientPlayerEntity;dropItem(Z)Lnet/minecraft/entity/ItemEntity;"))
-    private void overflowanimations$dropItemSwing(final CallbackInfo ci) {
-        if (OverflowAnimations.isEnabled() && !LegacyFirstPerson.items().dropSwing.isLegacy() && this.player.getItemInHand() != null) {
-            LegacyFirstPerson.fakeSwing(this.player);
-        }
     }
 }
